@@ -1,0 +1,8 @@
+URL: https://peo.gov.au/understand-our-parliament/having-your-say/elections-and-voting
+TITLE: Elections and voting - Parliamentary Education Office
+DESC: Discover how senators and members of the House of Representatives are elected by the Australian people to the Australian Parliament. Explore what a double dissolution is and how the Australian people can have their say on big issues in referendums and plebiscites.
+CRAWLED_AT: 2025-08-30T23:53:08.811042Z
+WORD_COUNT: 45
+---
+Elections and voting
+Discover how senators and members of the House of Representatives are elected by the Australian people to the Australian Parliament. Explore what a double dissolution is and how the Australian people can have their say on big issues in referendums and plebiscites.

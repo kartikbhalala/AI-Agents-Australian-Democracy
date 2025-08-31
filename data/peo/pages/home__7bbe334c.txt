@@ -1,0 +1,8 @@
+URL: https://peo.gov.au/
+TITLE: Parliamentary Education Office
+DESC: The Parliamentary Education Office (PEO) educates Australians about, and inspires their enthusiasm for, Australia’s parliamentary democracy. Through accessible, immersive, experiential programs and resources we foster informed, engaged and active citizens of all ages. Located in Australia’s Parliament House, we are leaders in civics and citizenship education.
+CRAWLED_AT: 2025-08-30T23:52:44.422508Z
+WORD_COUNT: 52
+---
+Welcome to the Parliamentary Education Office
+The Parliamentary Education Office (PEO) educates Australians about, and inspires their enthusiasm for, Australia’s parliamentary democracy. Through accessible, immersive, experiential programs and resources we foster informed, engaged and active citizens of all ages. Located in Australia’s Parliament House, we are leaders in civics and citizenship education.

@@ -1,0 +1,25 @@
+URL: https://peo.gov.au/teach-our-parliament/classroom-activities/how-parliament-works/interpret-the-constitution/group-organisation-table
+TITLE: Group organisation table - Parliamentary Education Office
+DESC: Use this table to organise your class into groups for the Interpret the Constitution classroom activity.
+CRAWLED_AT: 2025-08-30T23:52:53.056240Z
+WORD_COUNT: 109
+---
+Group organisation table
+Use this table to organise your class into groups for the
+Interpret the Constitution classroom activity
+.
+GROUP
+NUMBER OF STUDENTS
+ROLE
+Court Crier
+Teacher
+Make announcements during the hearing.
+Applicant’s legal team (including lead counsel)
+2-4
+Prepare evidence and arguments on behalf of the applicant, Alex Lee.
+Respondent’s legal team (including lead counsel)
+2-4
+Prepare evidence and arguments on behalf of the respondent, the Australian Electoral Commissioner.
+Justices of the High Court of Australia (including the Chief Justice)
+The rest of the class
+Make a judgement based on their interpretation of the Constitution, relevant precedents and the submissions presented by the applicant’s and respondent’s lawyers.

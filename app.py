@@ -1,4 +1,3 @@
-
 import os
 import json
 import math
@@ -13,7 +12,6 @@ import streamlit as st
 import pandas as pd
 from dotenv import load_dotenv
 import requests
-
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -32,9 +30,7 @@ try:
 except Exception:
     GEOCODER = None
 
-
 load_dotenv()
-
 
 DEMO_MODE = os.getenv("DEMO_MODE", "1") == "1"
 OUT_DIR = Path("out")
@@ -57,7 +53,9 @@ ALLOWED_SERVICE_KEYWORDS = [
     if s.strip()
 ]
 
-
+# -----------------------------------------------------------------------------
+# Utilities
+# -----------------------------------------------------------------------------
 def haversine_km(lat1, lon1, lat2, lon2):
     R = 6371.0
     if None in [lat1, lon1, lat2, lon2]:
@@ -107,35 +105,6 @@ def _safe_int(x: Any) -> Optional[int]:
         return None
 
 
-def resolve_service_id(service_ref: Optional[str]) -> Optional[str]:
-    """
-    Resolve selection like "1", "first", or by name, into a service rid (e.g., "svc_0") using last results or global meta.
-    """
-    if not service_ref:
-        return None
-    # direct rid like "svc_0"
-    if INDEX and service_ref in INDEX.meta:
-        return service_ref
-    ref = str(service_ref).strip().lower()
-    # numeric selection (1-based)
-    idx = _safe_int(ref)
-    if idx is not None and 1 <= idx <= len(STATE.last_results):
-        return STATE.last_results[idx - 1]["id"]
-    # common words
-    if ref in {"first", "top", "1st"} and STATE.last_results:
-        return STATE.last_results[0]["id"]
-    # match by name from last_results
-    for r in STATE.last_results:
-        if ref in r["name"].lower():
-            return r["id"]
-    # fallback: scan all known services by name
-    if INDEX:
-        for rid, meta in INDEX.meta.items():
-            if ref in (meta.get("name") or "").lower():
-                return rid
-    return None
-
-
 def _is_near_me_text(s: Optional[str]) -> bool:
     if not s:
         return True
@@ -148,14 +117,12 @@ def _resolve_origin(location_text: Optional[str]) -> Tuple[Optional[Dict[str, fl
     Returns (origin_coords, origin_label).
     Prefers saved home if user says 'near me' or empty, otherwise geocodes the provided text.
     """
-    # Use saved home if asked for 'near me' or no location provided
     if _is_near_me_text(location_text):
         home_lat = STATE.profile.get("home_lat")
         home_lon = STATE.profile.get("home_lon")
         home_addr = STATE.profile.get("home_address")
         if home_lat is not None and home_lon is not None:
             return {"lat": home_lat, "lon": home_lon}, home_addr or "Home"
-    # fall through to geocode the input (if any)
     if location_text:
         coords = geocode_location(location_text)
         if coords:
@@ -170,7 +137,6 @@ def _gmaps_dir_link(origin_lat, origin_lon, dest_lat, dest_lon, mode="driving"):
 
 
 def _apple_maps_dir_link(origin_lat, origin_lon, dest_lat, dest_lon, mode="driving"):
-    # dirflg: d=driving, w=walking, r=transit
     flg = {"driving": "d", "walking": "w", "transit": "r"}.get(mode, "d")
     params = []
     if origin_lat is not None and origin_lon is not None:
@@ -181,9 +147,7 @@ def _apple_maps_dir_link(origin_lat, origin_lon, dest_lat, dest_lon, mode="drivi
 
 
 def _osrm_route_duration_km(profile: str, o_lat: float, o_lon: float, d_lat: float, d_lon: float, timeout=6) -> Optional[Tuple[float, float]]:
-    """
-    Returns (duration_minutes, distance_km) using OSRM, or None if failed.
-    """
+    """Returns (duration_minutes, distance_km) using OSRM, or None if failed."""
     try:
         url = f"{OSRM_BASE_URL}/route/v1/{profile}/{o_lon},{o_lat};{d_lon},{d_lat}?overview=false"
         r = requests.get(url, timeout=timeout)
@@ -192,8 +156,8 @@ def _osrm_route_duration_km(profile: str, o_lat: float, o_lon: float, d_lat: flo
         routes = data.get("routes") or []
         if not routes:
             return None
-        duration_s = routes[0].get("duration")  # seconds
-        distance_m = routes[0].get("distance")  # metres
+        duration_s = routes[0].get("duration")
+        distance_m = routes[0].get("distance")
         if duration_s is None or distance_m is None:
             return None
         return (duration_s / 60.0, distance_m / 1000.0)
@@ -202,9 +166,7 @@ def _osrm_route_duration_km(profile: str, o_lat: float, o_lon: float, d_lat: flo
 
 
 def _estimate_transit_minutes(distance_km: float, driving_minutes: Optional[float], walking_minutes: Optional[float]) -> float:
-    """
-    Heuristic estimate for public transport travel time in minutes (AU metro-ish).
-    """
+    """Heuristic estimate for public transport travel time in minutes (AU metro-ish)."""
     if distance_km <= 1.2:
         base = (walking_minutes or (distance_km / 4.5 * 60)) + 5
     elif distance_km <= 5:
@@ -221,9 +183,7 @@ def _estimate_transit_minutes(distance_km: float, driving_minutes: Optional[floa
 
 
 def travel_estimates(origin: Optional[Dict[str, float]], dest: Optional[Dict[str, float]]) -> Dict[str, Any]:
-    """
-    Returns dict with driving/walking/transit estimates and map links.
-    """
+    """Returns dict with driving/walking/transit estimates and map links."""
     out = {
         "driving_minutes": None,
         "driving_km": None,
@@ -238,10 +198,8 @@ def travel_estimates(origin: Optional[Dict[str, float]], dest: Optional[Dict[str
     o_lat, o_lon = origin["lat"], origin["lon"]
     d_lat, d_lon = dest["lat"], dest["lon"]
 
-    # Distance baseline
     straight_km = haversine_km(o_lat, o_lon, d_lat, d_lon)
 
-    # Try OSRM for driving and walking
     drive = _osrm_route_duration_km("driving", o_lat, o_lon, d_lat, d_lon)
     walk = _osrm_route_duration_km("walking", o_lat, o_lon, d_lat, d_lon)
 
@@ -249,15 +207,14 @@ def travel_estimates(origin: Optional[Dict[str, float]], dest: Optional[Dict[str
         out["driving_minutes"], out["driving_km"] = round(drive[0]), round(drive[1], 1)
         out["source"] = "osrm"
     else:
-        # City driving estimate if OSRM unavailable
-        est_drive_min = (straight_km / 33.0) * 60.0  # 33 km/h avg
+        est_drive_min = (straight_km / 33.0) * 60.0
         out["driving_minutes"] = round(est_drive_min)
-        out["driving_km"] = round(straight_km * 1.25, 1)  # road distance a bit longer than straight line
+        out["driving_km"] = round(straight_km * 1.25, 1)
 
     if walk:
         out["walking_minutes"] = round(walk[0])
     else:
-        out["walking_minutes"] = round((straight_km / 4.5) * 60.0)  # 4.5 km/h walking speed
+        out["walking_minutes"] = round((straight_km / 4.5) * 60.0)
 
     out["transit_minutes_est"] = _estimate_transit_minutes(
         distance_km=out["driving_km"] if out["driving_km"] else straight_km,
@@ -265,7 +222,6 @@ def travel_estimates(origin: Optional[Dict[str, float]], dest: Optional[Dict[str
         walking_minutes=out["walking_minutes"]
     )
 
-    # Map links
     out["map_links"] = {
         "google": {
             "driving": _gmaps_dir_link(o_lat, o_lon, d_lat, d_lon, "driving"),
@@ -343,11 +299,9 @@ def seed_sample_dataset(path: str):
 def is_gov_or_community(meta: Dict[str, Any]) -> bool:
     if ALLOW_NON_GOV:
         return True
-    # Check website domain
     web = (meta.get("website") or "").lower()
     if ".gov.au" in web or ".org.au" in web:
         return True
-    # Keywords in category/name/description
     text = " ".join([
         str(meta.get("category") or ""),
         str(meta.get("name") or ""),
@@ -358,7 +312,9 @@ def is_gov_or_community(meta: Dict[str, Any]) -> bool:
             return True
     return False
 
-
+# -----------------------------------------------------------------------------
+# Service index (local CSV)
+# -----------------------------------------------------------------------------
 class ServiceIndex:
     def __init__(self, csv_path: str):
         self.csv_path = csv_path
@@ -432,7 +388,7 @@ class ServiceIndex:
         for h in hits:
             m = self.meta[h.metadata["rid"]]
             if not is_gov_or_community(m):
-                continue  # strict scope: only government/community
+                continue
             dist = None
             if origin_coords and m.get("lat") is not None and m.get("lon") is not None:
                 dist = haversine_km(origin_coords["lat"], origin_coords["lon"], m["lat"], m["lon"])
@@ -440,17 +396,14 @@ class ServiceIndex:
             m2["distance_km"] = round(dist, 2) if dist is not None else None
             results_all.append(m2)
 
-        # Sort and filter by straight-line distance when origin known; else leave semantic order
         if origin_coords:
             results_all = sorted(results_all, key=lambda x: x["distance_km"] if x["distance_km"] is not None else 9e9)
             if radius_km:
                 filtered = [r for r in results_all if r["distance_km"] is not None and r["distance_km"] <= radius_km]
-                results_all = filtered or results_all  # fallback if no geo data
+                results_all = filtered or results_all
 
-        # Only compute travel for the final top_k to save API calls
         selected = results_all[:top_k]
 
-        # Add travel estimates and map links
         if origin_coords:
             for r in selected:
                 dest = {"lat": r.get("lat"), "lon": r.get("lon")} if r.get("lat") is not None and r.get("lon") is not None else None
@@ -460,7 +413,6 @@ class ServiceIndex:
                     "map_links": travel.get("map_links", {}),
                 })
 
-        # Sort again by transport preference if origin known and travel available
         pref = (STATE.profile.get("transport_preference") or "any").lower()
         if origin_coords and selected:
             def pref_key(item):
@@ -469,9 +421,8 @@ class ServiceIndex:
                     return t.get("walking_minutes") or 1e9
                 if pref == "transit":
                     return t.get("transit_minutes_est") or 1e9
-                if pref == "car" or pref == "driving":
+                if pref in {"car", "driving"}:
                     return t.get("driving_minutes") or 1e9
-                # default any: keep earlier ordering (distance)
                 return item.get("distance_km") or 1e9
             selected = sorted(selected, key=pref_key)
 
@@ -480,7 +431,86 @@ class ServiceIndex:
             "results": selected
         }
 
+# -----------------------------------------------------------------------------
+# Civics RAG index (from PEO crawler output)
+# -----------------------------------------------------------------------------
+class CivicsIndex:
+    def __init__(self, manifest_path: str, chunk_chars: int = 1200, overlap: int = 200):
+        self.manifest_path = manifest_path
+        self.chunk_chars = chunk_chars
+        self.overlap = overlap
+        self.docs, self.meta = self._load_docs(manifest_path)
+        if self.docs:
+            self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+            self.vs = FAISS.from_documents(self.docs, self.embeddings)
+        else:
+            self.embeddings = None
+            self.vs = None
 
+    def _load_docs(self, manifest_path: str):
+        docs = []
+        meta = {}
+        if not os.path.exists(manifest_path):
+            return docs, meta
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                url = rec.get("url") or ""
+                title = rec.get("title") or ""
+                path = rec.get("path") or ""
+                if not path or not os.path.exists(path):
+                    continue
+                try:
+                    raw = Path(path).read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    continue
+                parts = raw.split("\n---\n", 1)
+                body = parts[1] if len(parts) > 1 else raw
+                body = body.strip()
+                for j, chunk in enumerate(self._chunk_text(body, self.chunk_chars, self.overlap)):
+                    rid = f"civ_{i}_{j}"
+                    d = Document(
+                        page_content=chunk,
+                        metadata={"rid": rid, "url": url, "title": title, "path": path}
+                    )
+                    docs.append(d)
+                    meta[rid] = {"url": url, "title": title, "path": path}
+        return docs, meta
+
+    def _chunk_text(self, text: str, size: int, overlap: int):
+        out = []
+        start = 0
+        n = len(text)
+        while start < n:
+            end = min(n, start + size)
+            out.append(text[start:end])
+            if end >= n:
+                break
+            start = max(0, end - overlap)
+        return out
+
+    def search(self, query: str, k: int = 4) -> List[Dict[str, Any]]:
+        if not self.docs or not self.vs:
+            return []
+        hits = self.vs.similarity_search(query, k=k)
+        results = []
+        for h in hits:
+            md = h.metadata
+            snippet = h.page_content[:600].replace("\n", " ").strip()
+            results.append({
+                "title": md.get("title", ""),
+                "url": md.get("url", ""),
+                "snippet": snippet,
+                "rid": md.get("rid", "")
+            })
+        return results
+
+# -----------------------------------------------------------------------------
+# Session state and singletons
+# -----------------------------------------------------------------------------
 class SessionState:
     def __init__(self):
         self.profile = {
@@ -498,7 +528,7 @@ class SessionState:
         self.bookings: List[Dict[str, Any]] = []
         self.reminders: List[Dict[str, Any]] = []
         self.handoffs: List[Dict[str, Any]] = []
-        self.last_results: List[Dict[str, Any]] = []  # store last search results (flattened list)
+        self.last_results: List[Dict[str, Any]] = []
 
     def save(self, path=str(OUT_DIR / "session_state.json")):
         with open(path, "w") as f:
@@ -513,43 +543,59 @@ class SessionState:
 # Singletons (rebound to st.session_state instances in app init)
 STATE: SessionState = None  # type: ignore
 INDEX: Optional[ServiceIndex] = None
+CIVICS: Optional[CivicsIndex] = None
 
-
+# -----------------------------------------------------------------------------
+# Tools
+# -----------------------------------------------------------------------------
 class FindServicesArgs(BaseModel):
-    query: str = Field(..., description="User's need, e.g., 'food relief near me', 'Medicare centre', 'housing support'.")
+    query: str = Field(..., description="User's need, e.g., 'volunteering near me', 'local council office', 'community centre'.")
     location: str = Field("", description="Address, suburb or postcode in Australia. If empty or 'near me', uses saved home if available.")
     radius_km: int = Field(20, description="Radius in km for results, default 20.")
     top_k: int = Field(5, description="How many results to return, default 5.")
-
 
 def find_services_tool(query: str, location: str = "", radius_km: int = 20, top_k: int = 5) -> str:
     if INDEX is None:
         return json.dumps({"error": "Index not initialised"})
     payload = INDEX.search(query=query, where=location, radius_km=radius_km, top_k=top_k)
     results = payload.get("results", [])
-    # Save last results for numeric selection
     STATE.last_results = results
     STATE.save()
     return json.dumps(payload)
 
-
 find_services = StructuredTool.from_function(
     name="find_services",
-    description="Find relevant nearby Australian government/community services. Includes travel estimates and map links when origin is known (home or provided location).",
+    description="Find nearby Australian government/community services (councils, community centres, legal aid, libraries, volunteering hubs). Includes travel estimates and map links when origin is known.",
     func=find_services_tool,
     args_schema=FindServicesArgs,
+)
+
+# Civics RAG tool
+class AskCivicsArgs(BaseModel):
+    question: str = Field(..., description="Civics/democracy question, e.g., 'What does the Senate do?'")
+    k: int = Field(4, description="How many passages to retrieve (default 4)")
+
+def ask_civics_tool(question: str, k: int = 4) -> str:
+    if CIVICS is None or CIVICS.vs is None:
+        return json.dumps({"error": "CIVICS_INDEX_NOT_READY", "message": "Civics index not loaded. Run the PEO crawler first."})
+    hits = CIVICS.search(question, k=k)
+    return json.dumps({"question": question, "hits": hits})
+
+ask_civics = StructuredTool.from_function(
+    name="ask_civics",
+    description="Retrieve authoritative civics info from peo.gov.au (RAG). Returns snippets with titles and URLs for citations.",
+    func=ask_civics_tool,
+    args_schema=AskCivicsArgs,
 )
 
 class RecordConsentArgs(BaseModel):
     granted: bool = Field(..., description="Whether user grants consent to share minimal info to book or submit forms.")
     scope: str = Field(..., description="What the consent covers, e.g., 'booking', 'form', 'reminder'.")
 
-
 def record_consent_tool(granted: bool, scope: str) -> str:
     STATE.profile["consent"] = bool(granted)
     STATE.save()
     return json.dumps({"consent": STATE.profile["consent"], "scope": scope})
-
 
 record_consent = StructuredTool.from_function(
     name="record_consent",
@@ -564,7 +610,6 @@ class BookServiceArgs(BaseModel):
     contact_channel: str = Field("sms", description="sms or email")
     contact_value: Optional[str] = Field(None, description="Phone for SMS or email address.")
     time_preference: Optional[str] = Field(None, description="Preferred time window, e.g., 'tomorrow 9am'.")
-
 
 def book_service_tool(service_id: str, user_name: Optional[str] = None, contact_channel: str = "sms",
                       contact_value: Optional[str] = None, time_preference: Optional[str] = None) -> str:
@@ -593,7 +638,7 @@ def book_service_tool(service_id: str, user_name: Optional[str] = None, contact_
         "service_address": svc.get("address", ""),
         "service_phone": svc.get("phone", ""),
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "status": "requested"  # simulated, not a real booking
+        "status": "requested"
     }
     STATE.bookings.append(booking)
     STATE.save()
@@ -604,7 +649,6 @@ def book_service_tool(service_id: str, user_name: Optional[str] = None, contact_
 
     confirmation_text = f"Demo booking created with {svc['name']} for {when}. Ref: {ref}. We’ll contact via {contact_channel}."
     return json.dumps({"ok": True, "booking": booking, "receipt_path": str(receipt_path), "message": confirmation_text})
-
 
 book_service = StructuredTool.from_function(
     name="book_service",
@@ -618,7 +662,6 @@ class SetReminderArgs(BaseModel):
     when: str = Field(..., description="Time for reminder, e.g., '2025-09-15 09:00' or '2025-09-15'.")
     channel: str = Field("sms", description="sms or email.")
 
-
 def _parse_when(when_str: str) -> Optional[datetime]:
     try:
         return datetime.strptime(when_str, "%Y-%m-%d %H:%M")
@@ -630,11 +673,10 @@ def _parse_when(when_str: str) -> Optional[datetime]:
     except Exception:
         return None
 
-
 def _write_ics(summary: str, description: str, start_dt: datetime, duration_minutes=30,
                location: str = "", path: Path = OUT_DIR / "reminder.ics") -> Path:
     dtstamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    dtstart = start_dt.strftime("%Y%m%dT%H%M%S")  # naive local time for demo
+    dtstart = start_dt.strftime("%Y%m%dT%H%M%S")
     dtend = (start_dt + timedelta(minutes=duration_minutes)).strftime("%Y%m%dT%H%M%S")
     uid = _gen_ref("ICS")
 
@@ -657,7 +699,6 @@ def _write_ics(summary: str, description: str, start_dt: datetime, duration_minu
     with open(path, "w") as f:
         f.write(ics)
     return path
-
 
 def set_reminder_tool(service_id: str, when: str, channel: str = "sms") -> str:
     if not STATE.profile.get("consent"):
@@ -691,7 +732,6 @@ def set_reminder_tool(service_id: str, when: str, channel: str = "sms") -> str:
     STATE.save()
     return json.dumps({"ok": True, "reminder": reminder, "message": f"Reminder set. File: {ics_path}"})
 
-
 set_reminder = StructuredTool.from_function(
     name="set_reminder",
     description="Set a reminder for an appointment or action. Accepts '1' for first result. Creates a local .ics file. Requires consent.",
@@ -702,7 +742,6 @@ set_reminder = StructuredTool.from_function(
 class FillFormArgs(BaseModel):
     service_id: str = Field(..., description="Service id or selection like '1'.")
     answers_json: str = Field(..., description="JSON string of form answers.")
-
 
 def fill_form_tool(service_id: str, answers_json: str) -> str:
     if not STATE.profile.get("consent"):
@@ -719,7 +758,7 @@ def fill_form_tool(service_id: str, answers_json: str) -> str:
         "service_id": rid or service_id,
         "answers": answers,
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "status": "submitted"  # simulated
+        "status": "submitted"
     }
     STATE.bookings.append({"form_submission": record})
     STATE.save()
@@ -731,7 +770,6 @@ def fill_form_tool(service_id: str, answers_json: str) -> str:
 
     return json.dumps({"ok": True, "form_submission": record, "receipt_path": str(receipt_path), "message": "Demo form submitted."})
 
-
 fill_form = StructuredTool.from_function(
     name="fill_form",
     description="Submit a simple form payload to the selected service (simulated). Accepts '1' for first result. Requires consent.",
@@ -742,7 +780,6 @@ fill_form = StructuredTool.from_function(
 class EscalateArgs(BaseModel):
     service_id: Optional[str] = Field(None, description="Optional service id if known or selection like '1'.")
     issue: str = Field(..., description="Short text to share with a volunteer/human helper.")
-
 
 def escalate_tool(service_id: Optional[str], issue: str) -> str:
     rid = resolve_service_id(service_id) if service_id else None
@@ -763,7 +800,6 @@ def escalate_tool(service_id: Optional[str], issue: str) -> str:
 
     return json.dumps({"ok": True, "handoff": note, "receipt_path": str(path), "message": "A volunteer will be notified (simulated)."})
 
-
 escalate_to_human = StructuredTool.from_function(
     name="escalate_to_human",
     description="Create a handover note to a volunteer for follow-up (simulated).",
@@ -771,7 +807,6 @@ escalate_to_human = StructuredTool.from_function(
     args_schema=EscalateArgs,
 )
 
-# New: Update profile tool to save home, contact details, language, etc.
 class UpdateProfileArgs(BaseModel):
     name: Optional[str] = Field(None, description="User's name.")
     language: Optional[str] = Field(None, description="Preferred language (e.g., 'en', 'es').")
@@ -780,7 +815,6 @@ class UpdateProfileArgs(BaseModel):
     home_address: Optional[str] = Field(None, description="Home address (used for 'near me' searches).")
     transport_preference: Optional[str] = Field(None, description="car | transit | walk | any")
     access_needs: Optional[List[str]] = Field(None, description="List of access needs like 'easy_read', 'large_text'.")
-
 
 def update_profile_tool(name: Optional[str] = None, language: Optional[str] = None, contact_channel: Optional[str] = None,
                         contact_value: Optional[str] = None, home_address: Optional[str] = None,
@@ -810,10 +844,8 @@ def update_profile_tool(name: Optional[str] = None, language: Optional[str] = No
             prof["home_lon"] = None
 
     STATE.save()
-    # Return a privacy-friendly profile view
     safe_prof = {k: v for k, v in prof.items() if k not in {"contact_value"}}
     return json.dumps({"ok": True, "profile": safe_prof})
-
 
 update_profile = StructuredTool.from_function(
     name="update_profile",
@@ -822,48 +854,68 @@ update_profile = StructuredTool.from_function(
     args_schema=UpdateProfileArgs,
 )
 
-TOOLS = [find_services, record_consent, book_service, set_reminder, fill_form, escalate_to_human, update_profile]
+# Helper used by tools (placed after STATE/INDEX exist at runtime)
+def resolve_service_id(service_ref: Optional[str]) -> Optional[str]:
+    """
+    Resolve selection like "1", "first", or by name, into a service rid (e.g., "svc_0") using last results or global meta.
+    """
+    if not service_ref:
+        return None
+    if INDEX and service_ref in INDEX.meta:
+        return service_ref
+    ref = str(service_ref).strip().lower()
+    idx = _safe_int(ref)
+    if idx is not None and 1 <= idx <= len(STATE.last_results):
+        return STATE.last_results[idx - 1]["id"]
+    if ref in {"first", "top", "1st"} and STATE.last_results:
+        return STATE.last_results[0]["id"]
+    for r in STATE.last_results:
+        if ref in r["name"].lower():
+            return r["id"]
+    if INDEX:
+        for rid, meta in INDEX.meta.items():
+            if ref in (meta.get("name") or "").lower():
+                return rid
+    return None
+
+TOOLS = [find_services, ask_civics, record_consent, book_service, set_reminder, fill_form, escalate_to_human, update_profile]
 
 # -----------------------------------------------------------------------------
 # Agent
 # -----------------------------------------------------------------------------
-SYSTEM_PROMPT = """You are CommunityMate, an inclusive Australian community assistant focused ONLY on government and community services.
+SYSTEM_PROMPT = """You are CommunityMate, an inclusive Australian assistant focused ONLY on government/community services AND civics education for new Australians.
 
 Scope and boundaries:
+- Help with discovering, accessing, and engaging with Australian government or local community/charity services.
+- Provide civics knowledge (how Australian democracy works, rights/responsibilities). Use ask_civics to retrieve sources from the Parliamentary Education Office (PEO), and cite them.
+- If a user asks for something unrelated, explain your scope briefly and offer a relevant gov/community service instead.
+- Do not give clinical, legal, or financial advice. Refer to appropriate services. Immediate danger: call 000; mental health: Lifeline 13 11 14, Beyond Blue 1300 22 4636; family/domestic violence: 1800RESPECT (1800 737 732). Examples only, not definitive lists.
 
-You only help with discovering, accessing, and engaging with Australian government or local community/charity services.
-If a user asks for something unrelated, explain your scope briefly and offer to connect them with a relevant service instead.
-Do not give clinical, legal, or financial advice. Refer to appropriate services (e.g., Legal Aid, health services).
-If the user indicates immediate danger or crisis: advise to call 000 (emergency). For mental health crisis suggest Lifeline 13 11 14, Beyond Blue 1300 22 4636. For family/domestic violence suggest 1800RESPECT (1800 737 732). Include state equivalents only as examples, not definitive lists.
 Goals:
+- Understand user needs in plain language, any language.
+- Ask up to 1–3 short questions if key info is missing (where from, transport: car/transit/walk, and when).
+- Be encouraging and easy to read. Offer simple steps: choose an option, get directions, set a reminder or booking (demo).
+- Use find_services to locate nearby GOV/community services.
+- Use ask_civics to retrieve civics facts and explain with 3–6 concise points, then give 1–3 practical next steps.
+- Offer to book, fill forms, and set reminders, but ONLY after explicit consent via record_consent.
+- If access needs are present (e.g., easy_read), simplify and keep sentences short.
 
-Understand user needs in plain language, any language.
-Ask up to 1–3 short, friendly questions if key info is missing (where from, how you'd like to get there: car/transit/walk, and when).
-Be encouraging and easy to read. Offer simple steps: choose an option, get directions, set a reminder or booking (demo).
-Proactively find nearby, relevant government/community services via the find_services tool.
-Offer to book, fill forms, and set reminders, but ONLY after getting explicit consent via record_consent.
-Be inclusive: short sentences, clear steps, respect your language. Offer easy-read on request or when access needs are present.
-If user has barriers (language, disability), simplify and offer handover to a volunteer.
-Never invent facts. If unsure, say so.
 Results style:
+- Start with a friendly sentence and a quick plan.
+- For services: list 2–5 options with compact bullets (name, help, hours, phone, website), plus distance/travel time when available; include map links.
+- For civics answers: include short "What it is" and "How it works" bullets, then 1–3 "Do next" steps.
+- Always include citations when using ask_civics: show titles + URLs.
 
-Start with a friendly sentence and a quick plan.
-Then list 2–5 options with compact bullets: name, what they help with, hours, phone, website.
-Include distance/travel time from the user's origin when available: driving and public transport (transit time may be an estimate).
-Provide map links for driving and transit so the user can open directions easily.
-If the user asks for fewer details, keep it short. If they want more, expand.
-If 'near me' or no location is provided, use saved home (if available). Otherwise, ask for a suburb or postcode.
 Safety & privacy:
+- Ask for consent before book_service, fill_form, or set_reminder.
+- Minimise data. Only store what is needed. Confirm what is stored and why.
+- If tools return CONSENT_REQUIRED, ask the user for permission and then call record_consent if they agree.
 
-Ask for consent before book_service, fill_form, or set_reminder.
-Minimise data. Only store what is needed. Confirm what is stored and why.
-If tools return CONSENT_REQUIRED, ask the user for permission and then call record_consent if they agree.
 Behaviour:
-
-Default to local Australian context.
-If the user's message implies a language (e.g., Spanish), reply in that language.
-When useful, invite the user to save their home address for quicker help next time (use update_profile).
-Use tools when helpful. Think step-by-step.
+- Default to Australian context.
+- If the user's message implies a language, reply in that language.
+- Invite saving a home address for 'near me' (use update_profile).
+- Use tools when helpful. Think step-by-step.
 """
 
 def build_agent():
@@ -885,7 +937,6 @@ def build_agent():
     ]).partial(tools=rendered_tools, tool_names=tool_names)
 
     agent = create_openai_tools_agent(llm=llm, tools=TOOLS, prompt=prompt)
-    # Memory for conversation
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     executor = AgentExecutor(agent=agent, tools=TOOLS, memory=memory, verbose=False)
     return executor
@@ -893,14 +944,13 @@ def build_agent():
 # -----------------------------------------------------------------------------
 # Streamlit App
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="CommunityMate (DEMO)", page_icon="🇦🇺", layout="centered")
-# Style for a floating mic button near the chat input
+st.set_page_config(page_title="Connecting New Citizens to Australian Democracy (DEMO)", page_icon="🇦🇺", layout="centered")
 st.markdown("""
 <style>
   .cm-mic-wrap {
     position: fixed;
     right: 16px;
-    bottom: 86px; /* tweak to align perfectly with your chat input */
+    bottom: 86px;
     z-index: 1000;
   }
   .cm-mic-wrap button {
@@ -917,49 +967,54 @@ st.markdown("""
   }
 </style>
 """, unsafe_allow_html=True)
+
 with st.sidebar:
-    # Logo
     st.image(str(Path(__file__).parent / "logo.jpeg"), use_container_width=True)
+    st.markdown("### Connecting New Citizens to Australian Democracy")
+    st.caption("Democracy-in-practice — GovHack prototype")
 
-    # Short description
-    st.markdown(
-        "### CommunityMate\n"
-        "Australian government & community services assistant (Hackathon Prototype)"
-    )
-
-    # Quick info bullets
     st.markdown(
         """
-**Scope:** Govt & community/charity services only  
-**Demo:** No real bookings. Demo outputs saved locally.  
-**Travel:** Car/walk via OSRM; public transport estimated  
-**Privacy:** Minimal local storage; consent required  
-**Note:** This is a demo — explore features and try different prompts!
+**Purpose:** Help new Australians build belonging, civic knowledge and confidence to participate.  
+- Learn how Australian democracy works (Parliament, voting, rights & responsibilities)  
+- Engage with representatives (find contacts, write messages)  
+- Get involved locally (council, libraries, community hubs, volunteering)  
+- Set gentle reminders (e.g., check enrolment, attend a community meeting)
         """
     )
 
-    # Realistic suggested prompts
     st.markdown("**Try these prompts:**")
     st.markdown(
         """
-- I need food relief for my family in Parramatta  
-- How can I get help for my son’s school fees?  
-- Nearest Medicare office near me  
-- Legal aid or advice for a rental dispute  
-- Support services for mental health  
-- How to apply for childcare assistance  
-- Save my home at 10 Darcy St, Parramatta
+- I'm a new citizen — what are my rights and responsibilities as a voter?  
+- How do I enrol to vote?  
+- What does the Senate do?  
+- How does a bill become law?  
+- Who is my MP and how can I contact them?  
+- Find my local council office near me  
+- Volunteering or community hubs near [your suburb]  
+- Save my home address for 'near me' searches  
+- Set a reminder to check my enrolment next week at 9am
         """
     )
 
-    # Reset chat button
+    st.markdown(
+        """
+**Demo notes:**  
+- Civics answers use PEO content (RAG).  
+- No real bookings; actions are simulated with local receipts.  
+- Travel times use OSRM (driving/walking); public transport is estimated.  
+- Minimal local storage; consent required for reminders/forms/bookings.
+        """
+    )
+
     if st.button("Reset chat"):
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()
 
 def init_components():
-    global STATE, INDEX
+    global STATE, INDEX, CIVICS
     if "cm_state" not in st.session_state:
         st.session_state.cm_state = SessionState()
     if "cm_index" not in st.session_state:
@@ -967,35 +1022,46 @@ def init_components():
         if not os.path.exists(csv_path):
             seed_sample_dataset(csv_path)
         st.session_state.cm_index = ServiceIndex(csv_path)
+    if "civics_index" not in st.session_state:
+        manifest = os.environ.get("PEO_MANIFEST_PATH", "data/peo/manifest.jsonl")
+        try:
+            st.session_state.civics_index = CivicsIndex(manifest)
+        except Exception:
+            st.session_state.civics_index = None
     if "cm_agent" not in st.session_state:
         st.session_state.cm_agent = build_agent()
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        # Initial friendly note
         st.session_state.messages.append({
             "role": "assistant",
-            "content": "Hi! I can help you find Australian government or community services near you. For example: 'I need food relief near Parramatta' or 'Where is the nearest Medicare office?'."
+            "content": "Welcome! I can explain how Australian democracy works (with sources) and connect you to local civic opportunities. Try: 'How do I enrol to vote?' or 'Find my local council near me'."
         })
-
     STATE = st.session_state.cm_state
     INDEX = st.session_state.cm_index
+    CIVICS = st.session_state.civics_index
 
 init_components()
 
-st.title("🇦🇺 CommunityMate (Demo)")
-st.caption("Strictly for Australian government & community services. Travel times use OSRM/public estimates. Bookings/forms/reminders are simulated; receipts saved to ./out")
+st.title("🇦🇺 Connecting New Citizens to Australian Democracy (Demo)")
+civics_ready = "ready" if (CIVICS and CIVICS.vs) else "run the PEO crawler (see README)"
+st.caption(f"Civics RAG (PEO) + local services. Civics KB status: {civics_ready}. Bookings/forms/reminders are simulated; receipts saved to ./out")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
+# Civics KB status indicator in sidebar (post-init)
+with st.sidebar:
+    civics_emoji = "✅" if (CIVICS and CIVICS.vs) else "⚠️"
+    st.caption(f"Civics knowledge base: {civics_emoji} {'ready' if civics_emoji=='✅' else 'run the PEO crawler'}")
 
+# Mic overlay
 mic_placeholder = st.empty()
 with mic_placeholder.container():
     st.markdown('<div class="cm-mic-wrap">', unsafe_allow_html=True)
     spoken_text = speech_to_text(
         language="en-AU",
-        start_prompt="🎤",  # small round mic
+        start_prompt="🎤",
         stop_prompt="⏹",
         just_once=True,
         use_container_width=False,
@@ -1003,11 +1069,9 @@ with mic_placeholder.container():
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-typed_text = st.chat_input("How can I help today?")
-
+typed_text = st.chat_input("Ask about democracy or local participation (e.g., 'How do I enrol to vote?' or 'Find my local council near me')")
 
 user_input = spoken_text or typed_text
-
 
 if user_input:
     if spoken_text and st.session_state.get("last_input_sent") == user_input:
@@ -1016,12 +1080,10 @@ if user_input:
         st.session_state["last_input_sent"] = user_input
 
 if user_input:
-   
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-   
     init_components()
 
     try:
@@ -1032,11 +1094,9 @@ if user_input:
     except Exception as e:
         assistant_text = f"Error: {e}"
 
-  
     st.session_state.messages.append({"role": "assistant", "content": assistant_text})
     with st.chat_message("assistant"):
         st.markdown(assistant_text)
 
-
 st.divider()
-st.caption("Tips: You can say 'near me' if you save your home address via the chat. I’ll ask for consent before any booking, form, or reminder. If you're in immediate danger, call 000.")
+st.caption("Tip: Save your home address for 'near me' searches. I’ll ask for consent before any booking, form, or reminder. If you're in immediate danger, call 000.")

@@ -1,0 +1,59 @@
+URL: https://peo.gov.au/understand-our-parliament/how-parliament-works/parliament-at-work/parliamentary-statistics/47th-parliament
+TITLE: Statistics of the 47th Parliament - Parliamentary Education Office
+DESC: View the facts and figures of the work of the 47th Australian Parliament.
+CRAWLED_AT: 2025-08-30T23:53:21.302600Z
+WORD_COUNT: 188
+---
+Statistics of the 47th Parliament
+View the facts and figures of the work of the 47th Australian Parliament.
+The 47th Parliament commenced on 26 July 2022 with an opening ceremony held at Parliament House.
+The Parliament came to a close on 28 March 2025 when it was prorogued by the Governor-General. The House of Representatives was then formally dissolved to allow for a federal election to be held on 3 May 2025. The election was for all members of the House of Representatives and half the Senate.
+The 47th Parliament at work
+Bills
+House of Representatives
+Senate
+Total
+First introduced
+437
+122
+559
+Passed by both houses
+355
+Committees
+House of Representatives*
+Senate*
+Total
+Committee reports presented
+252
+652
+904
+Other work
+House of Representatives
+Senate
+Total
+Questions without notice
+3,318
+4,533
+7,851
+Petitions presented
+1,706
+12
+1,718
+Signatures to petitions received
+1,942,576
+186,084
+2,128,660
+Sittings
+House of Representatives
+Senate
+Total
+Number of sitting days
+171
+155
+326
+Hours of sitting**
+1,604 hrs, 3 mins
+1,512 hrs, 14 mins
+3,116 hrs, 17 mins
+* includes joint committees administered by this house of Parliament
+** excludes suspension of sittings

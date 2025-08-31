@@ -1,0 +1,37 @@
+URL: https://peo.gov.au/teach-our-parliament/classroom-activities/parliament-and-its-people/negotiate-a-minority-government/group-organisation-table
+TITLE: Group organisation table - Parliamentary Education Office
+DESC: Use this table to organise your class into groups for the Negotiate a minority government classroom activity.
+CRAWLED_AT: 2025-08-30T23:52:50.909426Z
+WORD_COUNT: 117
+---
+Group organisation table
+Use this table to organise your class into groups for the
+Negotiate a minority government classroom activity
+.
+GROUP
+PERCENTAGE
+IF THERE ARE 30 STUDENTS IN YOUR CLASS
+Conservative major party
+34% of the class
+10
+Progressive major party
+34% of the class
+10
+Tasmania First party
+4% of the class (or at least 1 student)
+1
+Centrist party
+4% of the class (or at least 1 student)
+1
+Farmers party
+4% of the class (or at least 1 student)
+1
+Environment party
+4% of the class (or at least 1 student)
+1
+Coal Power party
+4% of the class (or at least 1 student)
+1
+Press gallery journalists
+12% of the class
+5

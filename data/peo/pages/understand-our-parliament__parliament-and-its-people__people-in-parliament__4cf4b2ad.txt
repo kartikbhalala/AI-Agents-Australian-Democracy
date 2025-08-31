@@ -1,0 +1,8 @@
+URL: https://peo.gov.au/understand-our-parliament/parliament-and-its-people/people-in-parliament
+TITLE: People in Parliament - Parliamentary Education Office
+DESC: Meet the people who work in the Australian Parliament. From the Prime Minister to the media, hundreds of people participate in and make sure Parliament can do its work.
+CRAWLED_AT: 2025-08-30T23:53:04.242692Z
+WORD_COUNT: 32
+---
+People in Parliament
+Meet the people who work in the Australian Parliament. From the Prime Minister to the media, hundreds of people participate in and make sure Parliament can do its work.

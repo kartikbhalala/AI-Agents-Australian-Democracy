@@ -1,0 +1,8 @@
+URL: https://peo.gov.au/teach-our-parliament/curriculum-links
+TITLE: Curriculum links - Parliamentary Education Office
+DESC: PEO resources are designed to directly meet the Years 3 to 10 Australian Civics and Citizenship Curriculum. These resources are arranged according to the relevant content descriptions.
+CRAWLED_AT: 2025-08-30T23:52:48.750852Z
+WORD_COUNT: 29
+---
+Curriculum links
+PEO resources are designed to directly meet the Years 3 to 10 Australian Civics and Citizenship Curriculum. These resources are arranged according to the relevant content descriptions.
