@@ -1,20 +1,23 @@
 # Core app
-streamlit>=1.30
-python-dotenv>=1.0
-pandas>=2.1
-requests>=2.31
-geopy>=2.4
+streamlit>=1.30,<2
+python-dotenv>=1.0.1
+pandas>=2.0,<3
+requests>=2.31,<3
+geopy>=2.4,<3
 
-# LangChain + OpenAI
-langchain>=0.2.5
-langchain-openai>=0.1.7
-langchain-community>=0.2.5
-openai>=1.30
-tiktoken>=0.6
-pydantic>=2.6
-
-# Vector store
-faiss-cpu>=1.7.4
-
-# Voice input
+# Mic recorder UI
 streamlit-mic-recorder>=0.0.8
+
+# RAG + LangChain stack
+langchain>=0.2.10,<0.3
+langchain-openai>=0.1.7,<0.2
+langchain-community>=0.2.10,<0.3
+openai>=1.30,<2
+tiktoken>=0.5,<1
+faiss-cpu
+
+# Crawler
+beautifulsoup4>=4.12,<5
+
+# Pydantic v2 for tools schemas
+pydantic>=2.5,<3
