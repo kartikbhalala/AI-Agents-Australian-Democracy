@@ -1,10 +1,408 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>My Hack2 Project</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CommunityMate</title>
+  <meta name="description" content="CommunityMate — a clean, professional and engaging landing page for our GovHack prototype: Connecting New Citizens to Australian Democracy. Civics answers with sources (PEO), local participation pathways, and a live demo." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta property="og:title" content="CommunityMate" />
+  <meta property="og:description" content="Belonging. Civic knowledge. Participation. A simple companion for new Australians." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      /* Light, professional (Google-ish) */
+      --bg: #ffffff;
+      --text: #202124;
+      --muted: #5f6368;
+      --border: #e0e0e0;
+      --panel: #ffffff;
+      --brand: #1a73e8;      /* Google blue */
+      --brand-ink: #ffffff;
+      --radius: 14px;
+      --shadow: 0 8px 28px rgba(60,64,67,.12);
+      --shadow-soft: 0 2px 12px rgba(60,64,67,.10);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* Subtle background accents */
+    .bg-wrap {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(640px 260px at 10% 10%, rgba(26,115,232,.08), transparent 60%),
+        radial-gradient(520px 220px at 90% 0%, rgba(15,157,88,.06), transparent 60%),
+        radial-gradient(420px 200px at 50% 100%, rgba(249,171,0,.07), transparent 60%);
+    }
+
+    /* Accessibility: skip link */
+    .skip-link {
+      position: absolute; left: -999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus {
+      left: 16px; top: 16px; width: auto; height: auto;
+      padding: 10px 14px; background: #111; color: #fff; border-radius: 8px; outline: 3px solid #a8c7fa;
+      z-index: 1000;
+    }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-title { display: flex; flex-direction: column; }
+    .brand-title .name {
+      font-weight: 800; letter-spacing: .2px; font-size: 1.2rem; line-height: 1.1;
+    }
+    .brand-title .tagline {
+      color: var(--muted); font-size: .92rem; margin-top: 2px;
+    }
+
+    /* Simple inline SVG logo */
+    .logo {
+      width: 36px; height: 36px;
+      border-radius: 10px; flex: 0 0 auto;
+      box-shadow: var(--shadow-soft);
+      background: radial-gradient(120% 120% at 20% 20%, #1a73e8 0%, #54a0ff 60%, #e8f0fe 100%);
+      display: grid; place-items: center;
+      border: 1px solid #d2e3fc;
+    }
+    .logo svg { width: 22px; height: 22px; }
+
+    .nav-space { width: 140px; } /* layout balance without extra links */
+
+    /* Centered banner with CTA */
+    .banner {
+      border-top: 1px solid #e6eefc;
+      border-bottom: 1px solid #e6eefc;
+      background: #f5f9ff;
+    }
+    .banner .inner {
+      text-align: center;
+      padding: 18px 0 22px;
+      color: #185abc;
+      font-weight: 600;
+    }
+    .banner .cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-top: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: var(--brand-ink);
+      font-weight: 800;
+      text-decoration: none;
+      border: 1px solid rgba(0,0,0,0.03);
+      box-shadow: var(--shadow);
+      transition: transform .06s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .cta:hover { text-decoration: none; background: #185abc; box-shadow: 0 10px 24px rgba(26,115,232,.25); }
+    .cta:active { transform: translateY(1px); }
+    .cta svg { stroke: var(--brand-ink); }
+
+    /* Hero */
+    .hero { padding: 42px 0 14px; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; }
+    @media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; } }
+    .eyebrow { color: var(--brand); font-weight: 800; text-transform: uppercase; font-size: .85rem; letter-spacing: .06em; margin-bottom: 10px; }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(2rem, 4.5vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.12; }
+    .lead { margin: 0; color: var(--muted); font-size: clamp(1.02rem, 2.6vw, 1.12rem); }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .chip {
+      font-size: .86rem; font-weight: 700;
+      padding: 8px 12px; border-radius: 999px; color: #174ea6;
+      background: #eaf2fe; border: 1px solid #d2e3fc;
+      transition: transform .06s ease, box-shadow .2s ease;
+      box-shadow: var(--shadow-soft);
+    }
+    .chip:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+
+    /* Visual card */
+    .visual {
+      position: relative; border-radius: var(--radius);
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid var(--border); box-shadow: var(--shadow);
+      overflow: hidden; padding: 20px; min-height: 260px;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .mini {
+      border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+      background: #fff;
+    }
+    .mini h4 { margin: 0 0 6px; font-size: .98rem; }
+    .mini p { margin: 0; color: var(--muted); font-size: .95rem; }
+    .pulse {
+      position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; border-radius: 999px;
+      background: radial-gradient(circle at center, rgba(26,115,232,.10), transparent 60%);
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float { 50% { transform: translateY(8px) translateX(-6px); } }
+
+    /* Sections */
+    section { padding: 28px 0; }
+    .section-title { margin: 0 0 12px; font-size: clamp(1.2rem, 2.4vw, 1.6rem); }
+    .muted { color: var(--muted); }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; box-shadow: var(--shadow);
+      transition: transform .08s ease, box-shadow .15s ease;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(60,64,67,.15); }
+    .card h3 { margin: 6px 0 8px; font-size: 1.08rem; }
+    .card p { margin: 0; color: var(--muted); }
+
+    /* Prompts */
+    .prompts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .prompt {
+      padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); box-shadow: var(--shadow-soft);
+      font-size: .95rem; cursor: pointer; transition: transform .06s ease, box-shadow .15s ease;
+    }
+    .prompt:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+    .prompt:active { transform: translateY(0); }
+
+    /* Sources bar */
+    .sources {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px;
+    }
+    @media (max-width: 900px) { .sources { grid-template-columns: 1fr; } }
+    .source {
+      border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; background: #fff; box-shadow: var(--shadow-soft);
+      display: flex; align-items: center; gap: 10px; color: var(--muted);
+    }
+    .source strong { color: var(--text); }
+
+    /* Lists */
+    .list { margin: 8px 0 0 18px; color: var(--muted); }
+    .list li { margin: 6px 0; }
+
+    /* Footer */
+    footer { padding: 28px 0 44px; border-top: 1px solid var(--border); background: #fff; color: var(--muted); }
+    .fine { font-size: .92rem; color: var(--muted); }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      padding: 10px 14px; background: #202124; color: #fff; border-radius: 10px; box-shadow: var(--shadow);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+      font-size: .95rem;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
 </head>
 <body>
-  <h1>Hello GitHub Pages!</h1>
-  <p>This is my test page.</p>
+  <div class="bg-wrap" aria-hidden="true"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <div class="brand" aria-label="CommunityMate">
+        <!-- Simple SVG logo (CM monogram) -->
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img" aria-label="CM logo">
+            <title>CM</title>
+            <path d="M6 12.5c0-3.1 2.1-5.5 5-5.5 1.6 0 3 .7 3.9 1.9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 12.5c0 3.1-2.1 5.5-5 5.5-1.6 0-3-.7-3.9-1.9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <span class="name">CommunityMate — Democracy Coach</span>
+          <span class="tagline">Connecting New Citizens to Australian Democracy</span>
+        </div>
+      </div>
+      <div class="nav-space" aria-hidden="true"></div>
+    </div>
+
+    <!-- Centered banner with CTA -->
+    <div class="banner">
+      <div class="container inner">
+        GovHack · Connecting New Citizens to Australian Democracy
+        <br />
+        <a class="cta" href="https://ai-agents-australian-democracy-na79apuaejy3w3fouggncp.streamlit.app/" target="_blank" rel="noopener noreferrer" aria-label="Click here for demo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 5h14v10H9l-4 4v-4H5z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Click here for demo
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Belonging • Civic knowledge • Participation</div>
+          <h1>Learn how Australian democracy works and find ways to participate simply and confidently</h1>
+          <p class="lead">Ask plain‑English questions (with sources), explore participation pathways, and take small next steps that build confidence.</p>
+          <div class="chips" aria-label="Highlights">
+            <span class="chip">PEO‑cited civics answers</span>
+            <span class="chip">Engage with representatives</span>
+            <span class="chip">Local participation & volunteering</span>
+            <span class="chip">Privacy & consent first</span>
+          </div>
+        </div>
+
+        <!-- Visual: engaging but minimal -->
+        <div class="visual" aria-hidden="true">
+          <div class="pulse"></div>
+          <div class="row">
+            <div class="mini">
+              <h4>Ask about democracy</h4>
+              <p>“What does the Senate do?” “How does a bill become law?”</p>
+            </div>
+            <div class="mini">
+              <h4>Get answers with sources</h4>
+              <p>Short explanations + links to the Parliamentary Education Office (PEO).</p>
+            </div>
+            <div class="mini">
+              <h4>Engage locally</h4>
+              <p>Find your representatives and community opportunities to participate.</p>
+            </div>
+            <div class="mini">
+              <h4>Take a next step</h4>
+              <p>Save a reminder or follow official links (demo only, consent‑first).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT IT DOES -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">What it does</h2>
+        <div class="cards">
+          <div class="card">
+            <h3>Learn how democracy works</h3>
+            <p>Ask civics questions and get short, clear explanations with citations from the Parliamentary Education Office (PEO).</p>
+          </div>
+          <div class="card">
+            <h3>Engage with representatives</h3>
+            <p>Find official links to electorate information and contact pages for MPs and Senators (AEC & APH directories).</p>
+          </div>
+          <div class="card">
+            <h3>Participate in community life</h3>
+            <p>Discover practical ways to get involved — councils, libraries, community hubs, youth and multicultural programs, volunteering.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRY PROMPTS (click to copy) -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">Try these prompts</h2>
+        <div class="prompts" role="list">
+          <button class="prompt" role="listitem" data-prompt="I’m a new citizen — what are my rights and responsibilities as a voter?">I’m a new citizen — what are my rights and responsibilities as a voter?</button>
+          <button class="prompt" role="listitem" data-prompt="How do I enrol to vote?">How do I enrol to vote?</button>
+          <button class="prompt" role="listitem" data-prompt="What does the Senate do?">What does the Senate do?</button>
+          <button class="prompt" role="listitem" data-prompt="How does a bill become law?">How does a bill become law?</button>
+          <button class="prompt" role="listitem" data-prompt="Who is my MP and how do I contact them?">Who is my MP and how do I contact them?</button>
+          <button class="prompt" role="listitem" data-prompt="Volunteering or community hubs near Parramatta">Volunteering or community hubs near Parramatta</button>
+        </div>
+        <p class="muted" style="margin-top:10px">Tip: click a prompt to copy, then paste it in the demo.</p>
+      </div>
+    </section>
+
+    <!-- TRUSTED SOURCES -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">Trusted, public sources</h2>
+        <div class="sources">
+          <div class="source"><span aria-hidden="true">🔹</span> <strong>PEO</strong> — Parliamentary Education Office (peo.gov.au)</div>
+          <div class="source"><span aria-hidden="true">🔹</span> <strong>AEC</strong> — Australian Electoral Commission (Electorates & enrolment)</div>
+          <div class="source"><span aria-hidden="true">🔹</span> <strong>APH</strong> — Parliament of Australia (Members & Senators)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHALLENGE ALIGNMENT -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">Challenge alignment</h2>
+        <ul class="list">
+          <li><strong>Belonging & connection:</strong> clear pathways into local participation and volunteering.</li>
+          <li><strong>Civic knowledge & confidence:</strong> practical, cited explanations in plain English.</li>
+          <li><strong>Active participation:</strong> simple steps to contact representatives and join community initiatives.</li>
+          <li><strong>Trust:</strong> transparent sources and consent‑first design.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- PRIVACY & SAFETY -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">Privacy & safety</h2>
+        <div class="card">
+          <p class="muted" style="margin:0">
+            Demo only — no real bookings are made. Minimal local storage; explicit consent is required for any action that stores details.
+            In an emergency call <strong>000</strong>. Mental health: <strong>Lifeline 13 11 14</strong>, <strong>Beyond Blue 1300 22 4636</strong>.
+            Family and domestic violence: <strong>1800RESPECT (1800 737 732)</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p class="fine">GovHack — Connecting New Citizens to Australian Democracy · #Democracy‑in‑practice</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">Copied! Paste this in the demo.</div>
+
+  <script>
+    // Copy prompt to clipboard with a toast
+    (function(){
+      const toasts = document.getElementById('toast');
+      const prompts = document.querySelectorAll('.prompt');
+      function showToast(msg){
+        if (!toasts) return;
+        toasts.textContent = msg || 'Copied!';
+        toasts.classList.add('show');
+        setTimeout(() => toasts.classList.remove('show'), 1600);
+      }
+      async function copy(text){
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Copied! Paste this in the demo.');
+        } catch(e){
+          showToast('Select and copy the text manually.');
+        }
+      }
+      prompts.forEach(el => {
+        el.addEventListener('click', () => copy(el.getAttribute('data-prompt') || el.textContent.trim()));
+      });
+    })();
+  </script>
 </body>
 </html>
